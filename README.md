@@ -1,4 +1,4 @@
-# jumia-scraper
+# Jumia Scraper
 This is a simple script that allows you interact programmatically with Nigerian e-commerce giant, Jumia.
 
 

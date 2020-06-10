@@ -8,22 +8,104 @@ Created on Thu Dec  5 18:58:14 2019
 import urllib.parse
 import requests
 from bs4 import BeautifulSoup
+import logging
+import os
+
+logging.basicConfig(level=os.environ.get("LOGLEVEL", "INFO"))
+
+BASE_URL = 'https://www.jumia.com.ng'
+CATALOG_URL = BASE_URL + '/catalog/?q='
+
+
+
+def data_builder(i):
+    try:
+        product_url = BASE_URL + i.find('a').attrs['href']
+    except (KeyError,AttributeError):
+        product_url = ''
+        
+    try:
+        product_id = i.find('a').attrs['data-id']
+    except (KeyError,AttributeError):
+        product_id = ''
+        
+    try:
+        product_name = i.find('a').attrs['data-name']
+    except (KeyError,AttributeError):
+        product_name = ''
+    
+    try:
+        product_price = ''.join(i.find('div',{'class':'prc'}).text.split('₦')[-1].strip().split(','))
+    except (KeyError,IndexError,AttributeError):
+        product_price = ''
+    
+    try:
+        product_old_price = ''.join(i.find('div',{'class':'old'}).text.split('₦')[-1].strip().split(','))
+    except (KeyError,IndexError,AttributeError):
+        product_old_price = ''
+        
+    try:
+        product_discount = i.find('div',{'class':'tag _dsct _sm'}).text
+    except (KeyError,AttributeError):
+        product_discount = ''
+        
+    try:
+        product_brand = i.find('a').attrs['data-brand']
+    except (IndexError,AttributeError):
+        product_brand = ''
+        
+    try:
+        product_category = i.find('a').attrs['data-category']
+    except (IndexError,AttributeError):
+        product_category = ''
+        
+    try:
+        product_image = i.find('img').attrs['data-src']
+    except (IndexError,AttributeError):
+        product_image = ''
+        
+    try:
+        image_width = i.find('img').attrs['width']
+    except (IndexError,AttributeError):
+        image_width = ''
+    
+    try:
+        image_height = i.find('img').attrs['height']
+    except (IndexError,AttributeError):
+        image_height = ''
+    
+    try:
+        shipping_type = i.find('div',{'class':'tag _glb _sm'}).text
+    except (IndexError,AttributeError):
+        shipping_type = ''
+    
+    
+    data = {}
+    keys = ['product_url','product_id','product_name','product_price','product_old_price','product_discount',
+            'product_brand','product_category','product_image','product_image','product_image',
+            'image_width','image_height','shipping_type']
+    values = [product_url,product_id,product_name,product_price,product_old_price,product_discount,
+            product_brand,product_category,product_image,product_image,product_image,
+            image_width,image_height,shipping_type]
+    
+    for key,value in zip(keys,values):
+        data[key] = value
+    
+    return data
 
 
 def topDeals(query, sorter='', params=''):
-    url = 'https://www.jumia.com.ng/catalog/?q='
+    url = CATALOG_URL
     query = query.split()
     query = '+'.join(query)
     url = url + query + sorter + params
-    print(url)
     r = requests.get(url)
     soup = BeautifulSoup(r.text, features="lxml")
-    name = [x.text for x in soup.find_all('span', {'class': 'name'})]
-    price = [x.text.split('₦')[1] for x in soup.find_all(
-        'span', {'class': 'price-box ri'})]
-    image = [x.find_next('img')['data-src']
-             for x in soup.find_all('div', {'class': 'image-wrapper default-state'})]
-    return name[:5], price[:5], image[:5]
+    products = [x for x in soup.find_all('article', {'class': 'prd _fb col c-prd'})]
+    
+    product_results = [data_builder(product) for product in products]
+    
+    return product_results
 
 
 def lowestPrice(query):
@@ -52,6 +134,4 @@ def rangePriceLow(query, prange):
 def rangePriceHigh(query, prange):
     return sortPrice(query, prange, 2)
 
-
-re = topDeals(query='airpods')
-print(re)
+logging.info(re)

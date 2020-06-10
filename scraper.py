@@ -78,15 +78,31 @@ def data_builder(i):
         shipping_type = i.find('div',{'class':'tag _glb _sm'}).text
     except (IndexError,AttributeError):
         shipping_type = ''
+        
+    try:
+        rating_percent = i.find('div',{'class':'in'}).text
+    except (IndexError,AttributeError):
+        shipping_type = ''
+    try:
+        rating_percent = i.find('div',{'class':'in'}).text
+    except (IndexError,AttributeError):
+        rating_percent = ''
+    
+    try:
+        num_of_ratings = i.find('div',{'class':'rev'}).text
+    except (IndexError,AttributeError):
+        num_of_ratings = ''
+    
+        
     
     
     data = {}
     keys = ['product_url','product_id','product_name','product_price','product_old_price','product_discount',
             'product_brand','product_category','product_image','product_image','product_image',
-            'image_width','image_height','shipping_type']
+            'image_width','image_height','shipping_type','rating_percent','num_of_ratings']
     values = [product_url,product_id,product_name,product_price,product_old_price,product_discount,
             product_brand,product_category,product_image,product_image,product_image,
-            image_width,image_height,shipping_type]
+            image_width,image_height,shipping_type,rating_percent,num_of_ratings]
     
     for key,value in zip(keys,values):
         data[key] = value
@@ -133,5 +149,13 @@ def rangePriceLow(query, prange):
 
 def rangePriceHigh(query, prange):
     return sortPrice(query, prange, 2)
+
+def sortReviews(query):
+    return topDeals(query=query, sorter='&sort=rating')
+
+
+
+    
+re = sortReviews(query='galaxy note 8')
 
 logging.info(re)

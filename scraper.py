@@ -10,6 +10,7 @@ import requests
 from bs4 import BeautifulSoup
 import logging
 import os
+import pandas as pd
 
 logging.basicConfig(level=os.environ.get("LOGLEVEL", "INFO"))
 
@@ -83,8 +84,9 @@ def data_builder(i):
         rating_percent = i.find('div',{'class':'in'}).text
     except (IndexError,AttributeError):
         shipping_type = ''
+
     try:
-        rating_percent = i.find('div',{'class':'in'}).text
+        rating_percent = i.find('div',{'class':'in'}).attrs['style'].split(':')[-1]
     except (IndexError,AttributeError):
         rating_percent = ''
     
@@ -154,8 +156,12 @@ def sortReviews(query):
     return topDeals(query=query, sorter='&sort=rating')
 
 
-
-    
 re = sortReviews(query='galaxy note 8')
+
+results = pd.DataFrame(re)
+results.to_csv('results.csv',index=False)
+
+
+
 
 logging.info(re)
